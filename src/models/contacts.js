@@ -1,14 +1,83 @@
-// const fs = require('fs/promises')
+const { Console } = require("node:console");
+const { v4: uuidv4 } = require("uuid");
+const fs = require("node:fs").promises;
 
-const listContacts = async () => {}
+const URL_CONTACTS = "src/models/contacts.json";
+const ENCODING = "utf-8";
 
-const getContactById = async (contactId) => {}
+const listContacts = async () => {
+  try {
+    const data = await fs.readFile(URL_CONTACTS, ENCODING);
+    const contacts = JSON.parse(data);
+    return contacts;
+  } catch (err) {
+    console.error("Error al listar los contactos:", err);
+  }
+};
 
-const removeContact = async (contactId) => {}
+const getContactById = async (contactId) => {
+  try {
+    const data = await fs.readFile(URL_CONTACTS, ENCODING);
+    const allContacts = JSON.parse(data);
+    const contact = allContacts.find((c) => c.id === contactId);
+    if (!contact) throw new Error("Contact not found");
+    return contact;
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-const addContact = async (body) => {}
+const removeContact = async (contactId) => {
+  try {
+    const data = await fs.readFile(URL_CONTACTS, ENCODING);
+    const allContacts = JSON.parse(data);
+    const isExtist = allContacts.some((c) => c.id === contactId);
+    if (isExtist) {
+      const updateContacts = allContacts.filter((c) => c.id !== contactId);
+      await fs.writeFile(URL_CONTACTS, JSON.stringify(updateContacts, null, 2));
+      return true;
+    }
+    throw new Error("Contact not found");
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
 
-const updateContact = async (contactId, body) => {}
+const addContact = async (body) => {
+  try {
+    const data = await fs.readFile(URL_CONTACTS, ENCODING);
+    const allContacts = JSON.parse(data);
+    const newContact = { id: uuidv4(), ...body };
+    const addNewContact = [...allContacts, newContact];
+    await fs.writeFile(URL_CONTACTS, JSON.stringify(addNewContact, null, 2));
+    return newContact;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const updateContact = async (contactId, update) => {
+  try {
+    const data = await fs.readFile(URL_CONTACTS, ENCODING);
+    const allContacts = JSON.parse(data);
+    const isExtist = allContacts.some((c) => c.id === contactId);
+    if (!isExtist) throw new Error("Not found");
+    const modifiedContact = allContacts.map((c) => {
+      if (contactId === c.id) {
+        if (update.name) c.name = update.name;
+        if (update.email) c.email = update.email;
+        if (update.phone) c.phone = update.phone;
+      }
+      return c;
+    });
+    await fs.writeFile(URL_CONTACTS, JSON.stringify(modifiedContact, null, 2));
+    return true
+  } catch (err) {
+    console.error(err);
+    return false
+  }
+};
 
 module.exports = {
   listContacts,
@@ -16,4 +85,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-}
+};
