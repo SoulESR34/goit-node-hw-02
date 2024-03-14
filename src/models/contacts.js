@@ -1,8 +1,8 @@
-const { Console } = require("node:console");
 const { v4: uuidv4 } = require("uuid");
+const path = require("path")
 const fs = require("node:fs").promises;
 
-const URL_CONTACTS = "src/models/contacts.json";
+const URL_CONTACTS = path.join(__dirname, 'contacts.json');
 const ENCODING = "utf-8";
 
 const listContacts = async () => {
@@ -20,10 +20,11 @@ const getContactById = async (contactId) => {
     const data = await fs.readFile(URL_CONTACTS, ENCODING);
     const allContacts = JSON.parse(data);
     const contact = allContacts.find((c) => c.id === contactId);
-    if (!contact) throw new Error("Contact not found");
+    if (!contact) return null
     return contact;
   } catch (err) {
     console.error(err);
+    return null
   }
 };
 
@@ -62,7 +63,7 @@ const updateContact = async (contactId, update) => {
     const data = await fs.readFile(URL_CONTACTS, ENCODING);
     const allContacts = JSON.parse(data);
     const isExtist = allContacts.some((c) => c.id === contactId);
-    if (!isExtist) throw new Error("Not found");
+    if (!isExtist) throw new Error("Contact not found");
     const modifiedContact = allContacts.map((c) => {
       if (contactId === c.id) {
         if (update.name) c.name = update.name;
@@ -72,10 +73,10 @@ const updateContact = async (contactId, update) => {
       return c;
     });
     await fs.writeFile(URL_CONTACTS, JSON.stringify(modifiedContact, null, 2));
-    return true
+    return true;
   } catch (err) {
     console.error(err);
-    return false
+    return false;
   }
 };
 

@@ -6,8 +6,16 @@ const {
   addContact,
   updateContact,
 } = require("../../models/contacts");
+const Joi = require("joi");
 
 const router = express.Router();
+const contactSchema = Joi.object({
+  name: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  phone: Joi.string().min(10).optional(),
+});
+
+
 
 router.get("/", async (req, res, next) => {
   const contacts = await listContacts();
@@ -45,6 +53,13 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
   const contactID = req.params.contactId;
+  const { error } = contactSchema.validate(req.query);
+
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  console.log("qr:", req.query,  !contactSchema.validate(req.query))
   const { name, email, phone } = req.query;
   const body = { name, email, phone };
   const update = await updateContact(contactID, body);
